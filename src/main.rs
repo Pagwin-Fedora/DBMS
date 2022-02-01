@@ -16,35 +16,42 @@ fn main() {
         .arg(Arg::new("message text")
             .required(true)
             .long("text")
-            .short('t'));
+            .short('t')
+            .takes_value(true));
     let edit = App::new("edit")
         .about("Edit a message")
         .arg(Arg::new("message id")
             .required(true)
             .long("message-id")
-            .short('m'))
+            .short('m')
+            .takes_value(true))
         .arg(Arg::new("message text")
             .long("text")
-            .short('t'));
+            .short('t')
+            .required(true)
+            .takes_value(true));
     let delete = App::new("delete")
         .about("Delete a message")
         .arg(Arg::new("message id")
             .required(true)
             .long("message-id")
-            .short('m'));
+            .short('m')
+            .takes_value(true));
     let app = App::new("Message edit shim")
         .version("0.1")
         .author("Pagwin <dev@pagwin.xyz>")
         .arg(Arg::new("config file")
             .long("config")
-            )
+            .takes_value(true))
         .arg(Arg::new("api token")
             .short('a')
-            .long("api-token"))
+            .long("api-token")
+            .takes_value(true))
         .arg(Arg::new("channel id")
             .short('c')
             .long("channel-id")
-            .required(true))
+            .required(true)
+            .takes_value(true))
         .subcommand(send)
         .subcommand(edit)
         .subcommand(delete);
@@ -74,7 +81,7 @@ fn main() {
         },
         Some(_)=>{None}
         None => {None}
-    }.unwrap();
+    }.expect("Sub command not provided");
     let mut client = block_on(Client::builder(get_token(&matches))
         .event_handler(handler)).unwrap();
     block_on(client.start()).unwrap();
