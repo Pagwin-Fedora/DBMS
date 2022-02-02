@@ -3,13 +3,17 @@ extern crate serenity;
 extern crate dirs;
 extern crate futures;
 
-use std::process;
-
 use clap::{App, Arg, ArgMatches};
+use dirs::config_dir;
 use futures::executor::block_on;
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
+use std::path::PathBuf;
+use std::process;
+
+include!(concat!(env!("OUT_DIR"), "consts.rs"))
+
 fn main() {
     let send = App::new("send")
         .about("Send a message")
