@@ -1,5 +1,5 @@
 [package]
-name = "discord_message_edit_shim"
+name = "DBMS"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 serenity = { version = "0.10", features = ["builder", "cache", "client", "gateway", "http", "model", "utils", "rustls_backend"], default-features = false }
 clap = "3.0"
-dirs = "4.0"
 serde = "1.0"
 serde_yaml = "0.8"
 futures = "0.3"
-const_gen = "1.0"
+dirs = "4.0"
+lazy_static = "1.4"

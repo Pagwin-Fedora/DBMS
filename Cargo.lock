@@ -3,6 +3,19 @@
 version = 3
 
 [[package]]
+name = "DBMS"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dirs",
+ "futures",
+ "lazy_static",
+ "serde",
+ "serde_yaml",
+ "serenity",
+]
+
+[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -188,18 +201,6 @@ dependencies = [
  "libc",
  "redox_users",
  "winapi",
-]
-
-[[package]]
-name = "discord_message_edit_shim"
-version = "0.1.0"
-dependencies = [
- "clap",
- "dirs",
- "futures",
- "serde",
- "serde_yaml",
- "serenity",
 ]
 
 [[package]]

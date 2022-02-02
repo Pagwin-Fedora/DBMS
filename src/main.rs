@@ -1,20 +1,21 @@
 extern crate clap;
 extern crate serenity;
-extern crate dirs;
 extern crate futures;
-
+extern crate dirs;
+#[macro_use]
+extern crate lazy_static;
 use clap::{App, Arg, ArgMatches};
-use dirs::config_dir;
 use futures::executor::block_on;
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
-use std::path::PathBuf;
 use std::process;
 
-include!(concat!(env!("OUT_DIR"), "consts.rs"))
-
+lazy_static!{
+    static ref CONFIG_FILE_LOCATION:String = dirs::config_dir().unwrap().join("DBMS").join("config.yaml").into_os_string().into_string().unwrap();
+}
 fn main() {
+    println!("{:?}",*CONFIG_FILE_LOCATION);
     let send = App::new("send")
         .about("Send a message")
         .arg(Arg::new("message text")
@@ -46,7 +47,9 @@ fn main() {
         .author("Pagwin <dev@pagwin.xyz>")
         .arg(Arg::new("config file")
             .long("config")
-            .takes_value(true))
+            .takes_value(true)
+            .default_value(CONFIG_FILE_LOCATION.as_str())
+            )
         .arg(Arg::new("api token")
             .short('a')
             .long("api-token")
