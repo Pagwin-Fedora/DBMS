@@ -1,14 +1,13 @@
 extern crate clap;
 extern crate serenity;
-extern crate futures;
 extern crate dirs;
 #[macro_use]
 extern crate serde;
 extern crate serde_yaml;
 #[macro_use]
 extern crate lazy_static;
+extern crate tokio;
 use clap::{App, Arg, ArgMatches};
-use futures::executor::block_on;
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
@@ -20,7 +19,8 @@ lazy_static!{
         .join("config.yaml")
         .into_os_string().into_string().unwrap();
 }
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     let send = App::new("send")
         .about("Send a message")
         .arg(Arg::new("message text")
@@ -96,9 +96,9 @@ fn main() {
         Some(_)=>{None}
         None => {None}
     }.expect("Sub command not provided");
-    let mut client = block_on(Client::builder(api_token)
-        .event_handler(handler)).unwrap();
-    block_on(client.start()).unwrap();
+    let mut client = Client::builder(api_token)
+        .event_handler(handler).await.unwrap();
+    client.start().await.unwrap();
 }
 //grabs channel id and api token from the cli args or config file
 fn gather_init_info(matches:&ArgMatches) -> (u64,String) {
@@ -136,10 +136,12 @@ struct Config{
 #[serenity::async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, context: Context, _ready:Ready){
+        println!("ready");
         let channel = ChannelId(self.channel_id);
         match &self.action {
             Action::Send(message) => {
                 channel.say(context, message).await.unwrap();
+                println!("sent?");
             },
             //messy clones ick
             Action::Edit(message_id, new_message) => {

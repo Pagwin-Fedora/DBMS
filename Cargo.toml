@@ -10,6 +10,6 @@ serenity = { version = "0.10", features = ["builder", "cache", "client", "gatewa
 clap = "3.0"
 serde = {version = "1.0", features = ["derive"]}
 serde_yaml = "0.8"
-futures = "0.3"
 dirs = "4.0"
 lazy_static = "1.4"
+tokio = {version = "1.16", features = ["rt", "macros"]}
