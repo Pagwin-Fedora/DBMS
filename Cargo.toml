@@ -1,8 +1,8 @@
 [package]
 name = "DBMS"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-
+authors = ["Spencer Powell(Pagwin) <dev@pagwin.xyz>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -13,3 +13,5 @@ serde_yaml = "0.8"
 dirs = "4.0"
 lazy_static = "1.4"
 tokio = {version = "1.16", features = ["rt", "macros"]}
+
+
