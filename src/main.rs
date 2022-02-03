@@ -48,7 +48,7 @@ async fn main() {
             .short('m')
             .takes_value(true));
     let app = App::new("Message edit shim")
-        .version("0.1")
+        .version("1.0")
         .author("Pagwin <dev@pagwin.xyz>")
         .arg(Arg::new("config file")
             .long("config")
