@@ -11,8 +11,8 @@ use clap::{App, Arg, ArgMatches};
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
-use std::process::exit;
-use std::{process, fs};
+use std::io::Write;
+use std::{process,fs};
 lazy_static!{
     static ref CONFIG_FILE_LOCATION:String = 
         dirs::config_dir().unwrap()
@@ -56,7 +56,7 @@ async fn main() {
             .short('m')
             .takes_value(true));
     let app = App::new("Message edit shim")
-        .version("1.1")
+        .version("1.1.1")
         .author("Pagwin <dev@pagwin.xyz>")
         .arg(Arg::new("config file")
             .long("config")
@@ -93,27 +93,28 @@ async fn main() {
             Some(Handler {
                 channel_id,
                 action: Action::Edit(
-                    submatch.value_of("message id").unwrap().parse().expect("invalid message id"),
+                    submatch.value_of("message id").unwrap().parse().unwrap_or_else(|_|err_out("invalid message id".to_string())),
                     submatch.value_of("message text").unwrap().to_string())
             })
         },
         Some(("delete",submatch)) => {
             Some(Handler {
                 channel_id,
-                action: Action::Delete(submatch.value_of("message id").unwrap().parse().expect("invalid message id"))
+                action: Action::Delete(
+                    submatch.value_of("message id").unwrap().parse().unwrap_or_else(|_|err_out("invalid message id".to_string())))
             })
         },
         Some(("retrieve",submatch)) =>{
             Some(Handler {
                 channel_id,
-                action: Action::Retrieve(submatch.value_of("message id").unwrap().parse().expect("invalid message id"))
+                action: Action::Retrieve(submatch.value_of("message id").unwrap().parse().unwrap_or_else(|_|err_out("invalid message id".to_string())))
             })
         }
         Some(_)=>{None}
         None => {None}
     }.unwrap_or_else(move ||{
-        long_app.print_help().unwrap();
-        exit(1);
+        long_app.write_help(&mut std::io::stderr()).unwrap();
+        process::exit(1);
     });
     let mut client = Client::builder(api_token)
         .event_handler(handler).await.unwrap();
@@ -125,13 +126,13 @@ fn gather_init_info(matches:&ArgMatches) -> (u64,String) {
         let config_file_loc = matches.value_of("config file").unwrap();
         Some(serde_yaml::from_reader(
             fs::File::open(config_file_loc)
-                .expect(format!("config file doesn't exist at {}",config_file_loc).as_str())
-            ).expect("invalid yaml config file"))
+                .unwrap_or_else(|_|err_out(format!("config file doesn't exist at {}",config_file_loc).to_string()))
+            ).unwrap_or_else(|_|err_out("invalid yaml config file".to_string())))
     } else {None};
     
     let channel_id:u64 = 
         match matches.value_of("channel id") {
-            Some(id)=> id.parse().expect("invalid channel id"),
+            Some(id)=> id.parse().unwrap_or_else(|_|err_out("invalid channel id".to_string())),
             None => config.clone().unwrap().channel_id
                 
         };
@@ -177,4 +178,8 @@ impl EventHandler for Handler {
         }
         process::exit(0);
     }
+}
+fn err_out(msg:String) -> ! {
+    std::io::stderr().write_all((msg+"\n").as_bytes());
+    process::exit(1);
 }
