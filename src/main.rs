@@ -11,6 +11,7 @@ use clap::{App, Arg, ArgMatches};
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
+use std::process::exit;
 use std::{process, fs};
 lazy_static!{
     static ref CONFIG_FILE_LOCATION:String = 
@@ -47,6 +48,13 @@ async fn main() {
             .long("message-id")
             .short('m')
             .takes_value(true));
+    let retrieve = App::new("retrieve")
+        .about("Retrieve the contents of a message")
+        .arg(Arg::new("message id")
+            .required(true)
+            .long("message-id")
+            .short('m')
+            .takes_value(true));
     let app = App::new("Message edit shim")
         .version("1.0")
         .author("Pagwin <dev@pagwin.xyz>")
@@ -65,7 +73,9 @@ async fn main() {
             .takes_value(true))
         .subcommand(send)
         .subcommand(edit)
-        .subcommand(delete);
+        .subcommand(delete)
+        .subcommand(retrieve);
+    let mut long_app = app.clone();
     let matches = app.get_matches();
     let (channel_id, api_token) = gather_init_info(&matches);
 
@@ -93,9 +103,18 @@ async fn main() {
                 action: Action::Delete(submatch.value_of("message id").unwrap().parse().expect("invalid message id"))
             })
         },
+        Some(("retrieve",submatch)) =>{
+            Some(Handler {
+                channel_id,
+                action: Action::Retrieve(submatch.value_of("message id").unwrap().parse().expect("invalid message id"))
+            })
+        }
         Some(_)=>{None}
         None => {None}
-    }.expect("Sub command not provided");
+    }.unwrap_or_else(move ||{
+        long_app.print_help().unwrap();
+        exit(1);
+    });
     let mut client = Client::builder(api_token)
         .event_handler(handler).await.unwrap();
     client.start().await.unwrap();
@@ -123,7 +142,7 @@ fn gather_init_info(matches:&ArgMatches) -> (u64,String) {
         };
     (channel_id,api_token)
 }
-enum Action{Send(String), Edit(u64,String), Delete(u64)}
+enum Action{Send(String), Edit(u64,String), Delete(u64), Retrieve(u64)}
 struct Handler{
     channel_id:u64,
     action:Action
@@ -141,14 +160,19 @@ impl EventHandler for Handler {
         match &self.action {
             Action::Send(message) => {
                 channel.say(context, message).await.unwrap();
-                println!("sent?");
+                println!("sent");
             },
             //messy clones ick
             Action::Edit(message_id, new_message) => {
                 channel.edit_message(context, message_id.clone(), |m| m.content(new_message)).await.unwrap();
+                println!("edited");
             },
             Action::Delete(message_id) => {
                 channel.delete_message(context, message_id.clone()).await.unwrap();
+                println!("deleted");
+            }
+            Action::Retrieve(message_id) => {
+                println!("{}",context.http.get_message(self.channel_id, message_id.clone()).await.unwrap().content);
             }
         }
         process::exit(0);
