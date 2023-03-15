@@ -39,7 +39,7 @@ async fn main() {
         .arg(Arg::new("stdin text")
              .long("stdin")
              .short('s')
-             .required(true)
+             .required(false)
              .takes_value(false))
         .arg(Arg::new("message text")
             .long("text")
