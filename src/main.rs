@@ -11,7 +11,7 @@ use clap::{App, Arg, ArgMatches};
 use serenity::model::prelude::Ready;
 use serenity::{Client, model::id::ChannelId, client::EventHandler};
 use serenity::prelude::*;
-use std::io::Write;
+use std::io::{Write,Read};
 use std::{process,fs};
 lazy_static!{
     static ref CONFIG_FILE_LOCATION:String = 
@@ -36,11 +36,16 @@ async fn main() {
             .long("message-id")
             .short('m')
             .takes_value(true))
+        .arg(Arg::new("stdin text")
+             .long("stdin")
+             .short('s')
+             .required(true)
+             .takes_value(false))
         .arg(Arg::new("message text")
             .long("text")
             .short('t')
-            .required(true)
-            .takes_value(true));
+            .takes_value(true)
+            .required(false));
     let delete = App::new("delete")
         .about("Delete a message")
         .arg(Arg::new("message id")
@@ -94,7 +99,16 @@ async fn main() {
                 channel_id,
                 action: Action::Edit(
                     submatch.value_of("message id").unwrap().parse().unwrap_or_else(|_|err_out("invalid message id".to_string())),
-                    submatch.value_of("message text").unwrap().to_string())
+                    submatch.value_of("message text")
+                        .map(str::to_string)
+                        .unwrap_or(submatch
+                            //.value_of("stdin text")
+                            .values_of("stdin text")
+                            .map(|_|{
+                                let mut s = String::new();
+                                std::io::stdin().read_to_string(&mut s).expect("Stdin io error"); 
+                                s
+                            }).unwrap()))
             })
         },
         Some(("delete",submatch)) => {
@@ -116,7 +130,7 @@ async fn main() {
         long_app.write_help(&mut std::io::stderr()).unwrap();
         process::exit(1);
     });
-    let mut client = Client::builder(api_token)
+    let mut client = Client::builder(api_token,serenity::model::gateway::GatewayIntents::GUILD_MESSAGES)
         .event_handler(handler).await.unwrap();
     client.start().await.unwrap();
 }
@@ -180,6 +194,6 @@ impl EventHandler for Handler {
     }
 }
 fn err_out(msg:String) -> ! {
-    std::io::stderr().write_all((msg+"\n").as_bytes());
+    _=std::io::stderr().write_all((msg+"\n").as_bytes());
     process::exit(1);
 }
