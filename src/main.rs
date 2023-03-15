@@ -130,7 +130,7 @@ async fn main() {
         long_app.write_help(&mut std::io::stderr()).unwrap();
         process::exit(1);
     });
-    let mut client = Client::builder(api_token,serenity::model::gateway::GatewayIntents::GUILD_MESSAGES)
+    let mut client = Client::builder(api_token,serenity::model::gateway::GatewayIntents::all())
         .event_handler(handler).await.unwrap();
     client.start().await.unwrap();
 }
@@ -169,8 +169,8 @@ struct Config{
 }
 #[serenity::async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, context: Context, _ready:Ready){
-        println!("ready");
+    async fn ready(&self, context: Context, ready:Ready){
+        println!("ready: {}", ready.user.name);
         let channel = ChannelId(self.channel_id);
         match &self.action {
             Action::Send(message) => {
