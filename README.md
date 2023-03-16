@@ -31,3 +31,13 @@ there's no support for stdin when using send at this time but copying the code f
 ### Additional commands
 
 you'll probably not use either of these but there are also retrieve and delete commands as well but both only use some of the options that the edit command does and you can run their help commands to figure them out.
+
+### The config
+
+example:
+```yaml
+# put your bot token as token
+token: ""
+# replace the number with the channel id
+channel_id: 425755675818459136
+```
